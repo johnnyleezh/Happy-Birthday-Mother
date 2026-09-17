@@ -249,7 +249,7 @@
   .switching [data-i18n] { opacity: 0; }
 
   /* Round music toggle */
-  .music, .lang {
+  .music, .lang, .download {
     position: fixed;
     right: calc(1.25rem + env(safe-area-inset-right));
     bottom: calc(1.25rem + env(safe-area-inset-bottom));
@@ -270,8 +270,15 @@
     right: calc(1.25rem + 52px + 0.75rem + env(safe-area-inset-right));
     font: 500 1rem "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Figtree", sans-serif;
   }
-  .lang:hover { background: var(--carnation); color: var(--paper); }
-  .lang:focus-visible {
+  .download {
+    right: calc(1.25rem + 2 * (52px + 0.75rem) + env(safe-area-inset-right));
+  }
+  .download svg { width: 22px; height: 22px; }
+  .download .tick { display: none; }
+  .download.done .arrow { display: none; }
+  .download.done .tick { display: block; }
+  .lang:hover, .download:hover { background: var(--carnation); color: var(--paper); }
+  .lang:focus-visible, .download:focus-visible {
     outline: 3px solid var(--carnation);
     outline-offset: 4px;
   }
@@ -318,6 +325,15 @@
   <p class="hint" data-i18n="hint">Swipe to turn pages</p>
 </main>
 
+<button class="download" id="download" data-i18n-label="downloadLabel" aria-label="Download this card">
+  <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 4v11M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <svg class="tick" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
 <button class="lang" id="lang" lang="zh-Hans" aria-label="切换到中文">中</button>
 
 <button class="music" id="music" aria-pressed="false" aria-label="Turn music on">
@@ -330,6 +346,9 @@
 </button>
 
 <script>
+  // Snapshot of this page exactly as loaded, used by the download button
+  const PAGE_SOURCE = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
   // ---- Birthday cake illustration ----
   function drawCake(svg) {
     const NS = "http://www.w3.org/2000/svg";
@@ -479,6 +498,7 @@
       p2: "I hope this year brings you good health, happiness and plenty of reasons to smile. Enjoy every moment of your special day.",
       love: "With love, your son,",
       name: "Johnny Lee",
+      downloadLabel: "Download this card",
       hint: "Swipe to turn pages",
       coverLabel: "Turn the page to read the card",
       insideLabel: "Card message",
@@ -498,6 +518,7 @@
       p2: "愿您新的一岁身体健康、幸福快乐，每天都有开心的理由。好好享受属于您的特别日子。",
       love: "爱您的儿子，",
       name: "李宗恒",
+      downloadLabel: "下载贺卡",
       hint: "滑动翻页",
       coverLabel: "翻开贺卡",
       insideLabel: "贺卡内容",
@@ -635,6 +656,22 @@
   cover.addEventListener("click", () => {
     if (suppressClick) return;
     setOpen(true);
+  });
+
+  // ---- Download a copy of this card ----
+  const dlBtn = document.getElementById("download");
+  dlBtn.addEventListener("click", () => {
+    const blob = new Blob([PAGE_SOURCE], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "birthday-card-mum.html";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    dlBtn.classList.add("done");
+    setTimeout(() => dlBtn.classList.remove("done"), 1800);
   });
 
   try {
